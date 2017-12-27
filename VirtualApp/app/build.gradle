@@ -5,14 +5,14 @@ apply plugin: 'com.android.application'
 
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 27
     buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "io.va.exposed"
         minSdkVersion 15
         targetSdkVersion 22
         versionCode 24
-        versionName "0.1.8"
+        versionName "0.1.8-m2"
         multiDexEnabled true
         android {
             defaultConfig {
