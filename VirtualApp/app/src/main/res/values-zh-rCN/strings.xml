@@ -3,7 +3,7 @@
     <string name="app_name">隔离装置</string>
     <string name="desktop">桌面</string>
     <string name="add_app">添加App</string>
-    <string name="preparing">正在打开App，请稍等…</string>
+    <string name="preparing">正在打开</string>
     <string name="delete">删除</string>
     <string name="create_shortcut">创建快捷方式</string>
     <string name="new_user">新的用户</string>

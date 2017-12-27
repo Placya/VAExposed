@@ -2,7 +2,7 @@
     <string name="app_name">隔離裝置</string>
     <string name="desktop">桌面</string>
     <string name="add_app">新增App</string>
-    <string name="preparing">正在打開App，請稍候…</string>
+    <string name="preparing">正在打開</string>
     <string name="delete">刪除</string>
     <string name="create_shortcut">建立捷徑</string>
     <string name="new_user">新的用戶</string>
