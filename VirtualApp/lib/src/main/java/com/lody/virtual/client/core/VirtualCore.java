@@ -2,6 +2,7 @@ package com.lody.virtual.client.core;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -11,13 +12,20 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.ConditionVariable;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PersistableBundle;
 import android.os.Process;
 import android.os.RemoteException;
 
@@ -442,23 +450,46 @@ public final class VirtualCore {
         if (targetIntent == null) {
             return false;
         }
+
         Intent shortcutIntent = new Intent();
         shortcutIntent.setClassName(getHostPkg(), Constants.SHORTCUT_PROXY_ACTIVITY_NAME);
         shortcutIntent.addCategory(Intent.CATEGORY_DEFAULT);
         if (splash != null) {
             shortcutIntent.putExtra("_VA_|_splash_", splash.toUri(0));
         }
-        shortcutIntent.putExtra("_VA_|_intent_", targetIntent);
+        shortcutIntent.putExtra("_VA_|_intent_", targetIntent.toString());
         shortcutIntent.putExtra("_VA_|_uri_", targetIntent.toUri(0));
         shortcutIntent.putExtra("_VA_|_user_id_", userId);
+        // Add support for Oreo
+        if(Build.VERSION.SDK_INT <= 25){
+            Intent addIntent = new Intent();
+            addIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
+            addIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, name);
+            addIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON, icon);
+            addIntent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
+            context.sendBroadcast(addIntent);
+            return true;
+        } else {
+            //Drawable iconDrawable = new BitmapDrawable(context.getResources(),icon);
+            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
+            shortcutIntent.setAction(Intent.ACTION_MAIN);
 
-        Intent addIntent = new Intent();
-        addIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
-        addIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, name);
-        addIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON, icon);
-        addIntent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
-        context.sendBroadcast(addIntent);
-        return true;
+            if(shortcutManager.isRequestPinShortcutSupported()){
+                ShortcutInfo pinShortcutInfo = new ShortcutInfo.Builder(context,userId+"_"+name)
+                        .setIntent(shortcutIntent)
+                        .setIcon(Icon.createWithBitmap(icon))
+                        .setShortLabel(name)
+                        .build();
+
+                //PendingIntent resultPendingIntent = null;
+                PendingIntent shortcutCallbackIntent = PendingIntent.getBroadcast(context, 0,  new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
+                shortcutManager.requestPinShortcut(pinShortcutInfo, shortcutCallbackIntent.getIntentSender());
+
+                return true;
+            }
+            return false;
+        }
+
     }
 
     public boolean removeShortcut(int userId, String packageName, Intent splash, OnEmitShortcutListener listener) {
